@@ -8,11 +8,13 @@ type User = {
 }
 
 const LoginPage = () => {
+  const [test, setTest] = useState<any>('')
   const promise = databases.listDocuments('blogs-id-29', 'blog-posts-29')
 
   promise.then(
     function (response) {
       console.log(response)
+      setTest(response)
     },
     function (error) {
       console.log(error)
@@ -43,6 +45,7 @@ const LoginPage = () => {
     return (
       <div>
         <p>Logged in as {loggedInUser.name}</p>
+        {test && test?.documents[0]?.title}
         <button type='button' onClick={logout}>
           Logout
         </button>
@@ -53,6 +56,7 @@ const LoginPage = () => {
   return (
     <div>
       <p>Not logged in</p>
+      {test && test?.documents[0]?.title}
       <form>
         <input
           type='email'
