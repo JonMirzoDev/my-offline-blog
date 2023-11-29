@@ -1,90 +1,50 @@
-'use client'
-import { useState } from 'react'
-import { account, databases, ID } from './appwrite'
+import { NextPage } from 'next'
+import Link from 'next/link'
 
-type User = {
-  name: string
-  // other user properties
+type Post = {
+  $id: string
+  $collection: string
+  $createdAt: string
+  $updatedAt: string
+  author: string | null
+  content: string
+  date: string
+  imageURL: string | null
+  tags: string[]
+  title: string
 }
 
-const LoginPage = () => {
-  const [test, setTest] = useState<any>('')
-  const promise = databases.listDocuments('blogs-id-29', 'blog-posts-29')
+type HomeProps = {
+  posts: Post[]
+  error?: string
+}
 
-  promise.then(
-    function (response) {
-      console.log(response)
-      setTest(response)
-    },
-    function (error) {
-      console.log(error)
-    }
-  )
+async function fetchPosts() {
+  const res = await fetch('http://localhost:3000/api/posts')
 
-  const [loggedInUser, setLoggedInUser] = useState<User | null>(null)
-  const [email, setEmail] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
-  const [name, setName] = useState<string>('')
-
-  const login = async (email: string, password: string) => {
-    await account.createEmailSession(email, password)
-    setLoggedInUser(await account.get())
+  if (!res.ok) {
+    throw new Error('Failed to fetch data')
   }
 
-  const register = async () => {
-    await account.create(ID.unique(), email, password, name)
-    await login(email, password)
-  }
+  return res.json()
+}
 
-  const logout = async () => {
-    await account.deleteSession('current')
-    setLoggedInUser(null)
-  }
-
-  if (loggedInUser) {
-    return (
-      <div>
-        <p>Logged in as {loggedInUser.name}</p>
-        {test && test?.documents[0]?.title}
-        <button type='button' onClick={logout}>
-          Logout
-        </button>
-      </div>
-    )
-  }
+const Home: NextPage<HomeProps> = async () => {
+  const posts = await fetchPosts()
+  console.log('posts: ', posts)
 
   return (
     <div>
-      <p>Not logged in</p>
-      {test && test?.documents[0]?.title}
-      <form>
-        <input
-          type='email'
-          placeholder='Email'
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type='password'
-          placeholder='Password'
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <input
-          type='text'
-          placeholder='Name'
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <button type='button' onClick={() => login(email, password)}>
-          Login
-        </button>
-        <button type='button' onClick={register}>
-          Register
-        </button>
-      </form>
+      <h1>My Blog</h1>
+      <ul>
+        {posts?.map((post: Post) => (
+          <li key={post.$id}>
+            <Link href={`/posts/${post.$id}`}>{post.title}</Link>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
 
-export default LoginPage
+export default Home
